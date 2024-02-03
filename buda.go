@@ -1,40 +1,40 @@
 package buda
 
 import (
-	"fmt"
-	"net/http"
-	"time"
-	"crypto/sha512"
-	"strings"
 	"crypto/hmac"
+	"crypto/sha512"
 	"encoding/base64"
 	"encoding/hex"
 	"encoding/json"
-	"strconv"
+	"fmt"
 	"io/ioutil"
+	"net/http"
+	"strconv"
+	"strings"
+	"time"
 )
 
 const (
-	BaseURL = "https://www.buda.com/api/v2"
-	MarketsEndpoint = "/markets"
-	MarketEndpoint = "/markets/%d"
-	MarketVolumeEndpoint = "/markets/%s/volume"
-	MarketTickerEndpoint = "/markets/%s/ticker"
+	BaseURL                 = "https://www.buda.com/api/v2"
+	MarketsEndpoint         = "/markets"
+	MarketEndpoint          = "/markets/%d"
+	MarketVolumeEndpoint    = "/markets/%s/volume"
+	MarketTickerEndpoint    = "/markets/%s/ticker"
 	MarketOrderBookEndpoint = "/markets/%s/order_book"
-	MarketTradesEndpoint = "/markets/%s/trades"
-	BalancesEndpoint = "/balances"
-	OrdersEndpoint = "/markets/%s/orders"
-	OrderEndpoint = "/orders/%d"
-	WithdrawalsEndpoint = "/currencies/%s/withdrawals"
-	DepositsEndpoint = "/currencies/%s/deposits"
-	DepositFeeEndpoint = "/currencies/%s/fees/deposit"
-	WithdrawalFeeEndpoint = "/currencies/%s/fees/withdrawal"
-	ReceiveAddressEndpoint = "/currencies/%s/receive_addresses/%s"
-	ElementsPerPage = "300"
+	MarketTradesEndpoint    = "/markets/%s/trades"
+	BalancesEndpoint        = "/balances"
+	OrdersEndpoint          = "/markets/%s/orders"
+	OrderEndpoint           = "/orders/%d"
+	WithdrawalsEndpoint     = "/currencies/%s/withdrawals"
+	DepositsEndpoint        = "/currencies/%s/deposits"
+	DepositFeeEndpoint      = "/currencies/%s/fees/deposit"
+	WithdrawalFeeEndpoint   = "/currencies/%s/fees/withdrawal"
+	ReceiveAddressEndpoint  = "/currencies/%s/receive_addresses/%s"
+	ElementsPerPage         = "300"
 )
 
 type APIClient struct {
-	Key string
+	Key    string
 	Secret string
 	Client *http.Client
 }
@@ -56,9 +56,9 @@ type MarketSingle struct {
 }
 
 type Fee struct {
-	Name string `json:"name"`
-	Percent float64 `json:"percent"`
-	Base []string `json:"base"`
+	Name    string   `json:"name"`
+	Percent float64  `json:"percent"`
+	Base    []string `json:"base"`
 }
 
 type FeeSingle struct {
@@ -74,15 +74,15 @@ type Volume struct {
 }
 
 type VolumeSingle struct {
- 	Volume Volume `json:"volume"`
+	Volume Volume `json:"volume"`
 }
 
 type Ticker struct {
 	LastPrice         []string `json:"last_price"`
 	MaxBid            []string `json:"max_bid"`
 	MinAsk            []string `json:"min_ask"`
-	PriceVariation24H string `json:"price_variation_24h"`
-	PriceVariation7D  string `json:"price_variation_7d"`
+	PriceVariation24H string   `json:"price_variation_24h"`
+	PriceVariation7D  string   `json:"price_variation_7d"`
 	Volume            []string `json:"volume"`
 }
 
@@ -100,9 +100,9 @@ type OrderBookSingle struct {
 }
 
 type Trade struct {
-	MarketId 	  string	 `json:"market_id"`
-	Timestamp     string	 `json:"timestamp"`
-	LastTimestamp string     `json:"last_timestamp"`
+	MarketId      string          `json:"market_id"`
+	Timestamp     string          `json:"timestamp"`
+	LastTimestamp string          `json:"last_timestamp"`
 	Entries       [][]interface{} `json:"entries"`
 }
 
@@ -155,8 +155,8 @@ type OrderSingle struct {
 }
 
 type Orders struct {
-	Orders []Order `json:"orders"`
-	Meta Metadata `json:"meta"`
+	Orders []Order  `json:"orders"`
+	Meta   Metadata `json:"meta"`
 }
 
 type DepositData struct {
@@ -166,18 +166,18 @@ type DepositData struct {
 }
 
 type Deposit struct {
-	ID          int      `json:"id"`
-	CreatedAt   string   `json:"created_at"`
-	UpdatedAt   string   `json:"updated_at"`
-	Amount      []string `json:"amount"`
-	Currency    string   `json:"currency"`
-	State       string   `json:"state"`
+	ID          int         `json:"id"`
+	CreatedAt   string      `json:"created_at"`
+	UpdatedAt   string      `json:"updated_at"`
+	Amount      []string    `json:"amount"`
+	Currency    string      `json:"currency"`
+	State       string      `json:"state"`
 	DepositData DepositData `json:"deposit_data"`
 }
 
 type Deposits struct {
 	Deposits []Deposit `json:"deposits"`
-	Meta Metadata `json:"meta"`
+	Meta     Metadata  `json:"meta"`
 }
 
 type WithdrawalData struct {
@@ -187,13 +187,13 @@ type WithdrawalData struct {
 }
 
 type Withdrawal struct {
-	ID        int    `json:"id"`
-	CreatedAt string `json:"created_at"`
-	UpdatedAt string `json:"updated_at"`
-	State          string   `json:"state"`
-	Amount         []string `json:"amount"`
-	Fee            []string `json:"fee"`
-	Currency       string   `json:"currency"`
+	ID             int            `json:"id"`
+	CreatedAt      string         `json:"created_at"`
+	UpdatedAt      string         `json:"updated_at"`
+	State          string         `json:"state"`
+	Amount         []string       `json:"amount"`
+	Fee            []string       `json:"fee"`
+	Currency       string         `json:"currency"`
 	WithdrawalData WithdrawalData `json:"withdrawal_data"`
 }
 
@@ -203,7 +203,7 @@ type WithdrawalSingle struct {
 
 type Withdrawals struct {
 	Withdrawals []Withdrawal `json:"withdrawals"`
-	Meta Metadata `json:"meta"`
+	Meta        Metadata     `json:"meta"`
 }
 
 type ReceiveAddress struct {
@@ -218,7 +218,7 @@ type ReceiveAddressSingle struct {
 	ReceiveAddress ReceiveAddress `json:"receive_address"`
 }
 
-func (client *APIClient) SignRequest(params...string) (string) {
+func (client *APIClient) SignRequest(params ...string) string {
 	h := hmac.New(sha512.New384, []byte(client.Secret))
 	h.Write([]byte(strings.Join(params, " ")))
 	return hex.EncodeToString(h.Sum(nil))
@@ -226,10 +226,11 @@ func (client *APIClient) SignRequest(params...string) (string) {
 
 func (client *APIClient) AuthenticatedRequest(request *http.Request) (*http.Request, error) {
 	var signature string
-	timestamp := strconv.FormatInt(time.Now().UTC().UnixNano()*1E6, 10)
+	timestamp := strconv.FormatInt(time.Now().UTC().UnixNano()*1e6, 10)
 
 	switch request.Method {
-		case "POST": {
+	case "POST":
+		{
 			var body []byte
 			body, err := ioutil.ReadAll(request.Body)
 			if err != nil {
@@ -237,7 +238,8 @@ func (client *APIClient) AuthenticatedRequest(request *http.Request) (*http.Requ
 			}
 			signature = client.SignRequest(request.Method, request.URL.RequestURI(), base64.StdEncoding.EncodeToString(body), timestamp)
 		}
-		case "GET": {
+	case "GET":
+		{
 			signature = client.SignRequest(request.Method, request.URL.RequestURI(), timestamp)
 		}
 	}
@@ -249,11 +251,11 @@ func (client *APIClient) AuthenticatedRequest(request *http.Request) (*http.Requ
 	return request, nil
 }
 
-func NewAPIClient(apiKey string, apiSecret string) (*APIClient, error){
- 	return &APIClient{Client: &http.Client{}, Key: apiKey, Secret: apiSecret}, nil
+func NewAPIClient(apiKey string, apiSecret string) (*APIClient, error) {
+	return &APIClient{Client: &http.Client{}, Key: apiKey, Secret: apiSecret}, nil
 }
 
-func (client *APIClient) FormatResource(resource string) (string) {
+func (client *APIClient) FormatResource(resource string) string {
 	return fmt.Sprintf("%s%s", BaseURL, resource)
 }
 
@@ -318,7 +320,7 @@ func (client *APIClient) GetMarket(id int) (*Market, error) {
 func (client *APIClient) GetVolumeByMarket(marketId string) (*Volume, error) {
 	var volume VolumeSingle
 
-	data, err := client.Get(fmt.Sprintf(MarketVolumeEndpoint, marketId),false)
+	data, err := client.Get(fmt.Sprintf(MarketVolumeEndpoint, marketId), false)
 	if err != nil {
 		return nil, err
 	}
@@ -334,7 +336,7 @@ func (client *APIClient) GetVolumeByMarket(marketId string) (*Volume, error) {
 func (client *APIClient) GetTickerByMarket(marketId string) (*Ticker, error) {
 	var ticker TickerSingle
 
-	data, err := client.Get(fmt.Sprintf(MarketTickerEndpoint, marketId),false)
+	data, err := client.Get(fmt.Sprintf(MarketTickerEndpoint, marketId), false)
 	if err != nil {
 		return nil, err
 	}
@@ -350,7 +352,8 @@ func (client *APIClient) GetTickerByMarket(marketId string) (*Ticker, error) {
 func (client *APIClient) GetOrderBookByMarket(marketId string) (*OrderBook, error) {
 	var orderBook OrderBookSingle
 
-	data, err := client.Get(fmt.Sprintf(MarketOrderBookEndpoint, marketId),false)
+	data, err := client.Get(fmt.Sprintf(MarketOrderBookEndpoint, marketId), false)
+	fmt.Println("response from api ", string(data))
 	if err != nil {
 		return nil, err
 	}
@@ -373,7 +376,7 @@ func (client *APIClient) GetTradesByMarket(marketId string, timestamp string) (*
 		url = fmt.Sprintf(MarketTradesEndpoint, marketId)
 	}
 
-	data, err := client.Get(url,false)
+	data, err := client.Get(url, false)
 	if err != nil {
 		return nil, err
 	}
@@ -389,7 +392,7 @@ func (client *APIClient) GetTradesByMarket(marketId string, timestamp string) (*
 func (client *APIClient) GetBalances() ([]Balance, error) {
 	var balances Balances
 
-	data, err := client.Get(BalancesEndpoint,true)
+	data, err := client.Get(BalancesEndpoint, true)
 	if err != nil {
 		return nil, err
 	}
@@ -405,7 +408,7 @@ func (client *APIClient) GetBalances() ([]Balance, error) {
 func (client *APIClient) GetBalanceByCurrency(currency string) (*Balance, error) {
 	var balance BalanceSingle
 
-	data, err := client.Get(BalancesEndpoint + "/" + currency, true)
+	data, err := client.Get(BalancesEndpoint+"/"+currency, true)
 	if err != nil {
 		return nil, err
 	}
@@ -438,7 +441,7 @@ func (client *APIClient) GetOrdersByMarket(marketId string) ([]Order, error) {
 	var orders Orders
 	var ret []Order
 
-	data, err := client.Get(fmt.Sprintf(OrdersEndpoint + "?page=1&per=" + ElementsPerPage, marketId), true)
+	data, err := client.Get(fmt.Sprintf(OrdersEndpoint+"?page=1&per="+ElementsPerPage, marketId), true)
 	if err != nil {
 		return nil, err
 	}
@@ -455,7 +458,7 @@ func (client *APIClient) GetOrdersByMarket(marketId string) ([]Order, error) {
 	if orders.Meta.TotalPages > 1 {
 		for i := orders.Meta.CurrentPage + 1; i <= orders.Meta.TotalPages; i++ {
 			go func(i int) {
-				data, err := client.Get(fmt.Sprintf(OrdersEndpoint + fmt.Sprintf("?page=%d", i) + "&per=" + ElementsPerPage, marketId), true)
+				data, err := client.Get(fmt.Sprintf(OrdersEndpoint+fmt.Sprintf("?page=%d", i)+"&per="+ElementsPerPage, marketId), true)
 				if err != nil {
 					errc <- err
 					return
@@ -490,7 +493,7 @@ func (client *APIClient) GetOrdersByMarketAndState(marketId string, state string
 	var orders Orders
 	var ret []Order
 
-	data, err := client.Get(fmt.Sprintf(OrdersEndpoint + "?page=1&per=" + ElementsPerPage + "&state=" + state, marketId), true)
+	data, err := client.Get(fmt.Sprintf(OrdersEndpoint+"?page=1&per="+ElementsPerPage+"&state="+state, marketId), true)
 	if err != nil {
 		return nil, err
 	}
@@ -507,7 +510,7 @@ func (client *APIClient) GetOrdersByMarketAndState(marketId string, state string
 	if orders.Meta.TotalPages > 1 {
 		for i := orders.Meta.CurrentPage + 1; i <= orders.Meta.TotalPages; i++ {
 			go func(i int) {
-				data, err := client.Get(fmt.Sprintf(OrdersEndpoint + fmt.Sprintf("?page=%d", i) + "&per=" + ElementsPerPage + "&state=" + state, marketId), true)
+				data, err := client.Get(fmt.Sprintf(OrdersEndpoint+fmt.Sprintf("?page=%d", i)+"&per="+ElementsPerPage+"&state="+state, marketId), true)
 				if err != nil {
 					errc <- err
 					return
@@ -538,12 +541,11 @@ func (client *APIClient) GetOrdersByMarketAndState(marketId string, state string
 	return ret, nil
 }
 
-
 func (client *APIClient) GetWithdrawalsByCurrency(currency string) ([]Withdrawal, error) {
 	var withdrawals Withdrawals
 	var ret []Withdrawal
 
-	data, err := client.Get(fmt.Sprintf(WithdrawalsEndpoint + "?page=1&per=" + ElementsPerPage, currency), true)
+	data, err := client.Get(fmt.Sprintf(WithdrawalsEndpoint+"?page=1&per="+ElementsPerPage, currency), true)
 	if err != nil {
 		return nil, err
 	}
@@ -560,7 +562,7 @@ func (client *APIClient) GetWithdrawalsByCurrency(currency string) ([]Withdrawal
 
 		for i := withdrawals.Meta.CurrentPage + 1; i <= withdrawals.Meta.TotalPages; i++ {
 			go func(i int) {
-				data, err := client.Get(fmt.Sprintf(WithdrawalsEndpoint + fmt.Sprintf("?page=%d", i) + "&per=" + ElementsPerPage, currency), true)
+				data, err := client.Get(fmt.Sprintf(WithdrawalsEndpoint+fmt.Sprintf("?page=%d", i)+"&per="+ElementsPerPage, currency), true)
 				if err != nil {
 					errc <- err
 					return
@@ -595,7 +597,7 @@ func (client *APIClient) GetDepositsByCurrency(currency string) ([]Deposit, erro
 	var deposits Deposits
 	var ret []Deposit
 
-	data, err := client.Get(fmt.Sprintf(DepositsEndpoint + "?page=1&per=" + ElementsPerPage, currency), true)
+	data, err := client.Get(fmt.Sprintf(DepositsEndpoint+"?page=1&per="+ElementsPerPage, currency), true)
 	if err != nil {
 		return nil, err
 	}
@@ -612,7 +614,7 @@ func (client *APIClient) GetDepositsByCurrency(currency string) ([]Deposit, erro
 
 		for i := deposits.Meta.CurrentPage + 1; i <= deposits.Meta.TotalPages; i++ {
 			go func(i int) {
-				data, err := client.Get(fmt.Sprintf(DepositsEndpoint + fmt.Sprintf("?page=%d", i) + "&per=" + ElementsPerPage, currency), true)
+				data, err := client.Get(fmt.Sprintf(DepositsEndpoint+fmt.Sprintf("?page=%d", i)+"&per="+ElementsPerPage, currency), true)
 				if err != nil {
 					errc <- err
 					return
@@ -647,7 +649,7 @@ func (client *APIClient) GetDepositsByCurrencyAndState(currency string, state st
 	var deposits Deposits
 	var ret []Deposit
 
-	data, err := client.Get(fmt.Sprintf(DepositsEndpoint + "?page=1&per=" + ElementsPerPage + "&state=" + state, currency), true)
+	data, err := client.Get(fmt.Sprintf(DepositsEndpoint+"?page=1&per="+ElementsPerPage+"&state="+state, currency), true)
 	if err != nil {
 		return nil, err
 	}
@@ -664,7 +666,7 @@ func (client *APIClient) GetDepositsByCurrencyAndState(currency string, state st
 
 		for i := deposits.Meta.CurrentPage + 1; i <= deposits.Meta.TotalPages; i++ {
 			go func(i int) {
-				data, err := client.Get(fmt.Sprintf(DepositsEndpoint + fmt.Sprintf("?page=%d", i) + "&per=" + ElementsPerPage + "&state=" + state, currency), true)
+				data, err := client.Get(fmt.Sprintf(DepositsEndpoint+fmt.Sprintf("?page=%d", i)+"&per="+ElementsPerPage+"&state="+state, currency), true)
 				if err != nil {
 					errc <- err
 					return
@@ -699,7 +701,7 @@ func (client *APIClient) GetWithdrawalsByCurrencyAndState(currency string, state
 	var withdrawals Withdrawals
 	var ret []Withdrawal
 
-	data, err := client.Get(fmt.Sprintf(WithdrawalsEndpoint + "?page=1&per=" + ElementsPerPage + "&state=" + state, currency), true)
+	data, err := client.Get(fmt.Sprintf(WithdrawalsEndpoint+"?page=1&per="+ElementsPerPage+"&state="+state, currency), true)
 	if err != nil {
 		return nil, err
 	}
@@ -716,7 +718,7 @@ func (client *APIClient) GetWithdrawalsByCurrencyAndState(currency string, state
 
 		for i := withdrawals.Meta.CurrentPage + 1; i <= withdrawals.Meta.TotalPages; i++ {
 			go func(i int) {
-				data, err := client.Get(fmt.Sprintf(WithdrawalsEndpoint + fmt.Sprintf("?page=%d", i) + "&per=" + ElementsPerPage + "&state=" + state, currency), true)
+				data, err := client.Get(fmt.Sprintf(WithdrawalsEndpoint+fmt.Sprintf("?page=%d", i)+"&per="+ElementsPerPage+"&state="+state, currency), true)
 				if err != nil {
 					errc <- err
 					return
